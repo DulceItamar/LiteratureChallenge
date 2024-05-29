@@ -117,7 +117,6 @@ public class Principal {
         var data = converter.getData(json, ResultsData.class);
 
         return data;
-
     }
 
     private void getBookDataAndAuthorData(){
