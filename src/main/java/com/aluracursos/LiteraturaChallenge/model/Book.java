@@ -35,7 +35,6 @@ public class Book {
                 .get(0);
         this.downloadCount = book.downloadCount();
         this.author = author;
-
     }
 
 
