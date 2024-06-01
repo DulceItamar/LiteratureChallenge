@@ -122,7 +122,7 @@ public class Principal {
                         6. Buscar libros por título en el servidor
                         
                         0. Salir
-                        
+                        ______________________________________________
                     """;
         System.out.println(menu);
 
@@ -134,6 +134,25 @@ public class Principal {
         System.out.print("Ingrese el título del libro que desea buscar:  ");
         var searchedBookByTitle = keyboard.next();
         keyboard.nextLine();
+        List<Book> booksList = bookRepository.findByTitleContainsIgnoreCase(searchedBookByTitle);
+
+        if (!booksList.isEmpty()){
+            for(Book book: booksList){
+                System.out.println(
+                        "\n------------------- LIBRO "+ " -------------------" +
+                                "\n   Título: " + book.getTitle() +
+                                "\n   Autor: " + book.getAuthor().getName() +
+                                "\n   Idioma: " + book.getLanguage() +
+                                "\n   Número de descargas: " + book.getDownloadCount() +
+                                "\n------------------- ***** ------------------- \n"
+                );
+
+            }
+
+
+        } else {
+            System.out.println("Libro no encontrado en la base de datos");
+        }
     }
 
     private void listRegisteredBooks(){
@@ -174,12 +193,10 @@ public class Principal {
         return data;
     }
 
-
-
+    // 6)
     private void getBookAndAuthorDataFromGutendex()  throws InvalidOptionsException {
 
         ResultsData data = getBookFromAPI();
-
 
         //Verify if the ResultData variable is empty
         if (!data.results().isEmpty()) {
@@ -201,7 +218,6 @@ public class Principal {
                 if (!uniqueTitles.contains(title)){
                     uniqueTitles.add(title);
                     uniqueBooks.add(book);
-
                 }
             }
 
@@ -219,7 +235,6 @@ public class Principal {
                 );
                 count++;
             }
-
             System.out.println("\n- | - | - | - | - | - | - SALIDA DE LA BIBLIOTECA - | - | - | - | - | - | -\n");
 
             /*
@@ -284,9 +299,6 @@ public class Principal {
             System.out.println("Error, no se encontró información sobre el libro o su autor.");
         }
     }
-
-
-
 
     private void showBookData(BookData book, Author author){
 
