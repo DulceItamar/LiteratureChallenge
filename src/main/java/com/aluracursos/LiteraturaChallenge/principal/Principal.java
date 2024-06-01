@@ -155,42 +155,41 @@ public class Principal {
         }
     }
 
+    // 2)
     private void listRegisteredBooks(){
 
-    }
 
+        List<Book> allRegisteredBooks = bookRepository.findAll();
+
+        if (!allRegisteredBooks.isEmpty()){
+            int count = 1;
+            System.out.println("\nEstos son todos los libros registrados en la base de datos");
+            for(Book book: allRegisteredBooks) {
+                System.out.println(
+                        "\n------------------- LIBRO "+ count +" -------------------" +
+                                "\n   Título: " + book.getTitle() +
+                                "\n   Autor: " + book.getAuthor().getName() +
+                                "\n   Idioma: " + book.getLanguage() +
+                                "\n   Número de descargas: " + book.getDownloadCount() +
+                                "\n------------------- ***** ------------------- \n"
+                );
+                count++;
+            }
+        } else {
+            System.out.println("No hay libros almacenados en la base de datos");
+        }
+    }
+    // 3)
     private void listRegisteredAuthors(){
 
     }
-
+    // 4)
     private void listAuthorsByRangeYear(){
 
     }
-
+    // 5)
     private void listBooksByLanguages(){
 
-    }
-
-    private ResultsData getBookFromAPI() {
-
-        ResultsData data = null;
-
-        try {
-            System.out.print("Ingrese el título del libro que desea : ");
-
-            var bookTitle  = keyboard.nextLine();
-            var json = consumeAPI.getData(URL_BASE + "/?search="+bookTitle.replace(" ","%20") );
-            System.out.println(json);
-            data = converter.getData(json, ResultsData.class);
-            verifyIsnotNullData(data, bookTitle);
-
-
-        } catch (InputMismatchException e) {
-            System.out.println( e.getMessage());
-        } catch ( BookNotFoundException e){
-            System.out.println(e.getMessage());
-        }
-        return data;
     }
 
     // 6)
@@ -300,6 +299,28 @@ public class Principal {
         }
     }
 
+    private ResultsData getBookFromAPI() {
+
+        ResultsData data = null;
+
+        try {
+            System.out.print("Ingrese el título del libro que desea : ");
+
+            var bookTitle  = keyboard.nextLine();
+            var json = consumeAPI.getData(URL_BASE + "/?search="+bookTitle.replace(" ","%20") );
+            System.out.println(json);
+            data = converter.getData(json, ResultsData.class);
+            verifyIsnotNullData(data, bookTitle);
+
+
+        } catch (InputMismatchException e) {
+            System.out.println( e.getMessage());
+        } catch ( BookNotFoundException e){
+            System.out.println(e.getMessage());
+        }
+        return data;
+    }
+
     private void showBookData(BookData book, Author author){
 
         System.out.println(
@@ -313,6 +334,7 @@ public class Principal {
                 "\n------------------- ***** -------------------\n"
         );
     }
+
 
 // Save Book and author data in db
     private void saveBookData(BookData book, Author author) {
