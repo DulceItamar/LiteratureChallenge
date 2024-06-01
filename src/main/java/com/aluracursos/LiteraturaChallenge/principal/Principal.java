@@ -43,7 +43,7 @@ public class Principal {
                 int selectedOption = keyboard.nextInt();
                 keyboard.nextLine();
                 verifyMenuInputIsValid(selectedOption);
-                //verifyMenuInputIsValid2(selectedOption);
+
 
 
                 switch (selectedOption){
@@ -86,31 +86,29 @@ public class Principal {
         }
     }
 
-    //Input data validations
+    //Input data validations for the main menu
     public static void verifyMenuInputIsValid(int input) throws Exception {
         if (input < 0 || input > 6) {
             throw new InvalidOptionsException("Opción inválida, intente de nuevo con las opciones disponibles en el menú.");
         }
     }
 
-    //Gutendex data validation
+    // Data validation for Gutendex
     public static void verifyIsnotNullData(ResultsData data, String bookTitle) throws  BookNotFoundException{
         if (data.results().isEmpty() || data.results() == null){
             throw new BookNotFoundException("Lo sentimos, el libro con título "+ bookTitle + " no se encontró.");
         }
     }
 
-
-    //Input data validations for books in case we have more than book coincidence in Gutendex searched
-    public static void verifyGutendexInputIsValid(int input, int elementsNumber) throws Exception {
+    //Input data validations for books in case we have multiple matches in the Gutendex search
+    public static void verifyGutendexInputIsValid(int input, int elementsNumber) throws InvalidOptionsException {
         if (input < 0 || input > elementsNumber) {
             throw new InvalidOptionsException("Opción inválida, intente de nuevo con las opciones disponibles en el menú.");
         } else if (input == 0) {
-            throw new ProgramExitException("Programa finalizado. Cerrando aplicación...");
+            System.out.println("Programa finalizado. Cerrando aplicación...");
+            System.exit(0);
         }
     }
-
-
 
     public void showMenu (){
         var menu = """
@@ -136,7 +134,6 @@ public class Principal {
         System.out.print("Ingrese el título del libro que desea buscar:  ");
         var searchedBookByTitle = keyboard.next();
         keyboard.nextLine();
-
     }
 
     private void listRegisteredBooks(){
@@ -179,24 +176,26 @@ public class Principal {
 
 
 
-    private void getBookAndAuthorDataFromGutendex() throws Exception {
+    private void getBookAndAuthorDataFromGutendex()  throws InvalidOptionsException {
 
         ResultsData data = getBookFromAPI();
 
 
-        //Verify if ResultData variable is empty
+        //Verify if the ResultData variable is empty
         if (!data.results().isEmpty()) {
 
             /*
             * If data (ResultData variable) is not empty, we filter to get books are not repeated.
-            *
+            * foundBookList -  List to have all books info get from Gutendex
+            * uniqueTitles  -  Set to save titles that are not repeated
+            * uniqueBooks   -  Array to save books that are not repeated
             */
 
             List<BookData> foundBooksList = data.results();
             Set<String> uniqueTitles = new HashSet<>();
             List<BookData> uniqueBooks = new ArrayList<>();
 
-            //Filter books are not repeated
+            //Filtering out duplicate books
             for(BookData book: foundBooksList){
                 String title = book.title();
                 if (!uniqueTitles.contains(title)){
@@ -206,60 +205,64 @@ public class Principal {
                 }
             }
 
-
             System.out.println("\n- | - | - | - | - | - | - ENTRADA A LA BIBLIOTECA - | - | - | - | - | - | -\n");
             int count = 1;
             for(BookData book: uniqueBooks){
                 System.out.println(
-
                         "------------------- LIBRO "+ count+ " -------------------" +
                                 "\n   Título: " + book.title() +
                                 "\n   Autor: " + book.authors().get(0).name() +
                                 "\n   Idioma: " + book.languages().stream().map(LanguagesOptions::getNameByCode)
                                 .collect(Collectors.toList()).get(0) +
                                 "\n   Número de descargas: " + book.downloadCount() +
-                                "\n------------------- ***** -------------------\n"
+                                "\n------------------- ***** ------------------- \n"
                 );
                 count++;
-
-
             }
 
             System.out.println("\n- | - | - | - | - | - | - SALIDA DE LA BIBLIOTECA - | - | - | - | - | - | -\n");
 
+            /*
+             * Cases:
+             *   - Only a book in uniqueBooks (array)
+             *   - Choosing a book in case the uniqueBooks (array) has more than one option
+             *   - Book not found.
+             *
+             * searchedBook - to save a book data searched by user.
+             * verifyGutendexInputIsValid - Verify input data from Gutendex
+             * */
 
             BookData searchedBook = null;
 
-            /*
-            * Only a book in uniqueBooks (array)
-            * Choosing a book in case the uniqueBooks (array) has more than one option
-            * Book not found.
-            * */
-
             if (uniqueBooks.stream().count() > 1){
-                System.out.println("Inserte el número que se encuentra en el encabezado para almacenar el libro que desea, si desea salir insertar 0: ");
+                System.out.print("Inserte el número que se encuentra en el encabezado para almacenar el libro que desea, si desea salir insertar 0: ");
                  var selectedBook = keyboard.nextInt();
                  keyboard.nextLine();
 
                 verifyGutendexInputIsValid(selectedBook, uniqueBooks.size());
 
-                searchedBook = uniqueBooks.get(selectedBook + 1);
+                searchedBook = uniqueBooks.get(selectedBook - 1);
 
             } else if (uniqueBooks.stream().count() == 1){
                 searchedBook = uniqueBooks.get(0);
             } else {
                 System.out.println("No se encontró ese libro en Gutendex :(");
-
             }
 
-            //Creating autorData to get author information
+            /*
+            * authorData   - Get author data from the book retrieved from Gutendex
+            * isBookInDB   - searching for book in db using the name retrieved from Gutendex
+            * isAuthorInDB - searching for author in db using the author name of book  retrieved from Gutendex
+            * */
             AuthorData authorData = searchedBook.authors().get(0);
-
-
-            //search book
             Book isBookInDB = bookRepository.findByTitle(searchedBook.title());
             Author isAuthorInDB = authorRepository.findByName(authorData.name());
 
+            /*
+            * Cases:
+            *       - It's not a match with any book in db -> Create an instance to save the retrieved book in database.
+            *       - It's a match with a book in db -> Pop Message about the retrieved book is in database
+            * */
 
             if (isBookInDB == null){
                 Author author;
@@ -275,9 +278,8 @@ public class Principal {
                 showBookData(searchedBook, author);
                 
             } else {
-                System.out.println("El libro ya se encuentra en la base de datos");
+                System.out.println("--- El libro ya se encuentra en la base de datos.  ---");
             }
-
         } else {
             System.out.println("Error, no se encontró información sobre el libro o su autor.");
         }
@@ -305,7 +307,7 @@ public class Principal {
 
         Book newBook = new Book(book, author);
         bookRepository.save(newBook);
-        System.out.println("Se ha guardado el libro "+ book.title() + "en la base de datos.");
+        System.out.println("--- Se ha guardado el libro "+ book.title() + "en la base de datos. ---");
 
     }
 
