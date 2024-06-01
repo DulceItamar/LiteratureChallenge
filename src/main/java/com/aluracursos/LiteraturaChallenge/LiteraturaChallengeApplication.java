@@ -27,6 +27,6 @@ public class LiteraturaChallengeApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		Principal principal = new Principal(bookRepository, authorRepository);
 
-		principal.showMenu();
+		principal.mainApp();
 	}
 }
