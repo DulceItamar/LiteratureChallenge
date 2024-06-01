@@ -181,6 +181,20 @@ public class Principal {
     }
     // 3)
     private void listRegisteredAuthors(){
+        List<Author> allAuthors = authorRepository.findAll();
+
+        int count = 1;
+        if (!allAuthors.isEmpty()){
+            for (Author author: allAuthors){
+
+                System.out.println("\n [" + count + "] \n" +
+                        author.toString())
+                ;
+                count++;
+            }
+        } else {
+            System.out.println("No se encontraron autores registrados en la base de datos.");
+        }
 
     }
     // 4)
@@ -225,11 +239,14 @@ public class Principal {
             for(BookData book: uniqueBooks){
                 System.out.println(
                         "------------------- LIBRO "+ count+ " -------------------" +
+
+
                                 "\n   Título: " + book.title() +
                                 "\n   Autor: " + book.authors().get(0).name() +
                                 "\n   Idioma: " + book.languages().stream().map(LanguagesOptions::getNameByCode)
                                 .collect(Collectors.toList()).get(0) +
                                 "\n   Número de descargas: " + book.downloadCount() +
+
                                 "\n------------------- ***** ------------------- \n"
                 );
                 count++;
@@ -292,10 +309,10 @@ public class Principal {
                 showBookData(searchedBook, author);
                 
             } else {
-                System.out.println("--- El libro ya se encuentra en la base de datos.  ---");
+                System.out.println("\n--- El libro ya se encuentra en la base de datos.  ---\n");
             }
         } else {
-            System.out.println("Error, no se encontró información sobre el libro o su autor.");
+            System.out.println("\nError, no se encontró información sobre el libro o su autor.");
         }
     }
 

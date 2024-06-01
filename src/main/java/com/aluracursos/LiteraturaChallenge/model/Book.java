@@ -74,12 +74,12 @@ public class Book {
     public String toString(){
 
         return
-                "------------------- LIBRO -------------------" +
+
                 "\n   Título: " + title +
                 "\n   Autor: " + author +
                 "\n   Idioma: " + language +
-                "\n   Número de descargas: " +downloadCount +
-                "\n------------------- ***** -------------------\n";
+                "\n   Número de descargas: " +downloadCount;
+
     }
 
 
