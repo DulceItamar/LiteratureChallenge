@@ -59,7 +59,7 @@ public class Book {
     }
 
     public void setLanguage(LanguagesOptions language) {
-        this.language = language;
+        this.language= language;
     }
 
     public int getDownloadCount() {

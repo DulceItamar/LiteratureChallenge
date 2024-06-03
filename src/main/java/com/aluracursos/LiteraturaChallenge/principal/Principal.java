@@ -9,12 +9,12 @@ import com.aluracursos.LiteraturaChallenge.repository.AuthorRepository;
 import com.aluracursos.LiteraturaChallenge.repository.BookRepository;
 import com.aluracursos.LiteraturaChallenge.service.ConsumeAPI;
 import com.aluracursos.LiteraturaChallenge.service.ConvertData;
+import com.aluracursos.LiteraturaChallenge.validations.AllValidations;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Principal {
-
 
     Scanner keyboard = new Scanner(System.in);
     private ConsumeAPI consumeAPI = new ConsumeAPI();
@@ -24,6 +24,7 @@ public class Principal {
     private BookRepository bookRepository;
     private AuthorRepository authorRepository;
     private Boolean isRunningApp = true;
+    private  AllValidations validations = new AllValidations();
 
     public Principal(BookRepository bookRepository, AuthorRepository authorRepository) {
         this.bookRepository = bookRepository;
@@ -35,15 +36,13 @@ public class Principal {
 
         while (isRunningApp) {
 
-
             try {
                 showMenu();
 
                 System.out.print("Ingresa el número de la opción que desea ejecutar:  ");
                 int selectedOption = keyboard.nextInt();
                 keyboard.nextLine();
-                verifyMenuInputIsValid(selectedOption);
-
+                validations.verifyMenuInputIsValid(selectedOption);
 
 
                 switch (selectedOption){
@@ -70,7 +69,6 @@ public class Principal {
                         System.out.println("Programa finalizado. Cerrando aplicación...");
                         System.exit(0);
 
-
                     default:
                         System.out.println("Opción inválida, intente de nuevo");
                 }
@@ -85,39 +83,6 @@ public class Principal {
             }
         }
     }
-
-    //Input data validations for the main menu
-    public static void verifyMenuInputIsValid(int input) throws Exception {
-        if (input < 0 || input > 6) {
-            throw new InvalidOptionsException("Opción inválida, intente de nuevo con las opciones disponibles en el menú.");
-        }
-    }
-
-    // Data validation for Gutendex
-    public static void verifyIsnotNullData(ResultsData data, String bookTitle) throws  BookNotFoundException{
-        if (data.results().isEmpty() || data.results() == null){
-            throw new BookNotFoundException("Lo sentimos, el libro con título "+ bookTitle + " no se encontró.");
-        }
-    }
-
-    //Input data validations for books in case we have multiple matches in the Gutendex search
-    public static void verifyGutendexInputIsValid(int input, int elementsNumber) throws InvalidOptionsException {
-        if (input < 0 || input > elementsNumber) {
-            throw new InvalidOptionsException("Opción inválida, intente de nuevo con las opciones disponibles en el menú.");
-        } else if (input == 0) {
-            System.out.println("Programa finalizado. Cerrando aplicación...");
-            System.exit(0);
-        }
-    }
-
-
-    public static  void verifyYearsFormat(int inputYear) throws InvalidOptionsException {
-        if (inputYear < -4000 || inputYear > 2024) {
-            throw new InvalidOptionsException("Opción inválida, intente con otros valores");
-
-        }
-    }
-
 
 
     public void showMenu (){
@@ -148,17 +113,12 @@ public class Principal {
 
         if (!booksList.isEmpty()){
             for(Book book: booksList){
-                System.out.println(
-                        "\n------------------- LIBRO "+ " -------------------" +
-                                "\n   Título: " + book.getTitle() +
-                                "\n   Autor: " + book.getAuthor().getName() +
-                                "\n   Idioma: " + book.getLanguage() +
-                                "\n   Número de descargas: " + book.getDownloadCount() +
-                                "\n------------------- ***** ------------------- \n"
-                );
+
+                System.out.println("\n------------------- LIBRO " +" -------------------");
+                showBook(book, book.getAuthor());
+                System.out.println( "\n------------------- ***** -------------------\n");
 
             }
-
 
         } else {
             System.out.println("Libro no encontrado en la base de datos");
@@ -175,15 +135,12 @@ public class Principal {
             int count = 1;
             System.out.println("\nEstos son todos los libros registrados en la base de datos");
             for(Book book: allRegisteredBooks) {
-                System.out.println(
-                        "\n------------------- LIBRO "+ count +" -------------------" +
-                                "\n   Título: " + book.getTitle() +
-                                "\n   Autor: " + book.getAuthor().getName() +
-                                "\n   Idioma: " + book.getLanguage() +
-                                "\n   Número de descargas: " + book.getDownloadCount() +
-                                "\n------------------- ***** ------------------- \n"
-                );
+
+                System.out.println("\n------------------- LIBRO "+ count +" -------------------");
+                showBook(book, book.getAuthor());
+                System.out.println( "\n------------------- ***** -------------------\n");
                 count++;
+
             }
         } else {
             System.out.println("No hay libros almacenados en la base de datos");
@@ -193,20 +150,31 @@ public class Principal {
     // 3)
     private void listRegisteredAuthors(){
         List<Author> allAuthors = authorRepository.findAll();
-
+        showAuthors(allAuthors);
+/*
         int count = 1;
         if (!allAuthors.isEmpty()){
             for (Author author: allAuthors){
 
-                System.out.println("\n [" + count + "] \n" +
-                        author.toString())
-                ;
+                System.out.println("\n [" + count + "] \n");
+                        System.out.println("\n------------------- AUTHOR "+ " -------------------");
+                System.out.println(author.toString());
+
+                System.out.println( "\n------------------- ***** -------------------\n");
+
+
                 System.out.println(author.getBooks());
+
+
+                var books = author.getBooks();
+
+
                 count++;
             }
         } else {
             System.out.println("No se encontraron autores registrados en la base de datos.");
         }
+        */
 
     }
 
@@ -217,10 +185,14 @@ public class Principal {
         var inputYear = keyboard.nextInt();
 
 
-        verifyYearsFormat(inputYear);
+        validations.verifyYearsFormat(inputYear);
         List<Author> searchedAuthors = authorRepository.findByBirthYearLessThanEqualAndDeathYearGreaterThanEqual(inputYear, inputYear);
         List<String> authorBooks = new ArrayList<>();
         int count = 1;
+
+        showAuthors(searchedAuthors);
+        /*
+
         if (!searchedAuthors.isEmpty()){
             for (Author author: searchedAuthors){
 
@@ -228,7 +200,6 @@ public class Principal {
                                 "------------------- Autor -------------------" +
                         author.toString());
 
-                ;
 
                 for(Book book: author.getBooks()){
                     authorBooks.add(book.getTitle());
@@ -244,15 +215,69 @@ public class Principal {
             System.out.println("No se encontraron autores registrados en la base de datos.");
         }
 
-
-
-
-
-
+         */
     }
-    // 5)
-    private void listBooksByLanguages(){
 
+    // 5)
+    private void listBooksByLanguages() throws InvalidOptionsException {
+        System.out.println("""
+                Menú de opciones:
+                1. Inglés
+                2. Alemán
+                3. Español
+                4. Italiano
+                5. Rusia
+                6. Chino
+                7. Portugués
+                """);
+        System.out.print("Selecciona el número del idioma de los libros que deseas obtener: ");
+        var inputLanguage = keyboard.nextInt();
+        validations.verifyOptionsForLanguageMeu(inputLanguage);
+
+        LanguagesOptions selectedLanguage = null;
+
+        switch (inputLanguage){
+            case 1:
+                selectedLanguage = LanguagesOptions.ENGLISH;
+                break;
+            case 2:
+                selectedLanguage = LanguagesOptions.GERMAN;
+                break;
+            case 3:
+                selectedLanguage = LanguagesOptions.SPANISH;
+                break;
+            case 4:
+                selectedLanguage = LanguagesOptions.ITALIAN;
+                break;
+            case 5:
+                selectedLanguage = LanguagesOptions.RUSSIAN;
+                break;
+            case 6:
+                selectedLanguage = LanguagesOptions.CHINESE;
+                break;
+            case 7:
+                selectedLanguage =  LanguagesOptions.PORTUGUES;
+                break;
+            default:
+                System.out.println("Error, no se encontrarón libros con ese idioma ");
+        }
+
+
+        List<Book> booksByLanguage = bookRepository.findByLanguage(selectedLanguage);
+
+        if (!booksByLanguage.isEmpty()){
+            int count = 1 ;
+            for (Book book: booksByLanguage){
+
+                System.out.println("\n------------------- LIBRO "+ count +" -------------------");
+                showBook(book, book.getAuthor());
+                System.out.println( "\n------------------- ***** -------------------\n");
+                count++;
+
+            }
+        } else {
+            System.out.println("No hay libros registrados en ese idioma. ");
+        }
     }
 
     // 6)
@@ -283,17 +308,25 @@ public class Principal {
                 }
             }
 
+
             System.out.println("\n- | - | - | - | - | - | - ENTRADA A LA BIBLIOTECA - | - | - | - | - | - | -\n");
             int count = 1;
+
+
+            String languageInSpanish;
             for(BookData book: uniqueBooks){
+                var languageInEnglish = book.languages().stream().map(LanguagesOptions::getNameByCode)
+                        .collect(Collectors.toList()).get(0);
+                languageInSpanish = LanguagesOptions.getSpanishNameByCode(String.valueOf(languageInEnglish));
+
+
                 System.out.println(
                         "------------------- LIBRO "+ count+ " -------------------" +
 
 
                                 "\n   Título: " + book.title() +
                                 "\n   Autor: " + book.authors().get(0).name() +
-                                "\n   Idioma: " + book.languages().stream().map(LanguagesOptions::getNameByCode)
-                                .collect(Collectors.toList()).get(0) +
+                                "\n   Idioma: " + languageInSpanish +
                                 "\n   Número de descargas: " + book.downloadCount() +
 
                                 "\n------------------- ***** ------------------- \n"
@@ -319,7 +352,7 @@ public class Principal {
                  var selectedBook = keyboard.nextInt();
                  keyboard.nextLine();
 
-                verifyGutendexInputIsValid(selectedBook, uniqueBooks.size());
+                validations.verifyGutendexInputIsValid(selectedBook, uniqueBooks.size());
 
                 searchedBook = uniqueBooks.get(selectedBook - 1);
 
@@ -376,7 +409,7 @@ public class Principal {
             var json = consumeAPI.getData(URL_BASE + "/?search="+bookTitle.replace(" ","%20") );
             System.out.println(json);
             data = converter.getData(json, ResultsData.class);
-            verifyIsnotNullData(data, bookTitle);
+            validations.verifyIsnotNullData(data, bookTitle);
 
 
         } catch (InputMismatchException e) {
@@ -389,16 +422,63 @@ public class Principal {
 
     private void showBookData(BookData book, Author author){
 
+        String languageInSpanish;
+
+        var languageInEnglish = book.languages().stream().map(LanguagesOptions::getNameByCode)
+                    .collect(Collectors.toList()).get(0);
+        languageInSpanish = LanguagesOptions.getSpanishNameByCode(String.valueOf(languageInEnglish));
+
         System.out.println(
 
           "------------------- LIBRO -------------------" +
                 "\n   Título: " + book.title() +
                 "\n   Autor: " + author.getName() +
-                "\n   Idioma: " + book.languages().stream().map(LanguagesOptions::getNameByCode)
-                .collect(Collectors.toList()).get(0) +
+                "\n   Idioma: " +languageInSpanish +
                 "\n   Número de descargas: " + book.downloadCount() +
                 "\n------------------- ***** -------------------\n"
         );
+    }
+
+    private void showBook(Book book, Author author){
+
+        String languageInSpanish;
+
+        languageInSpanish = LanguagesOptions.getSpanishNameByCode(String.valueOf(book.getLanguage()));
+
+        System.out.println(
+
+
+                        "\n   Título: " + book.getTitle() +
+                        "\n   Autor: " + author.getName() +
+                        "\n   Idioma: " +languageInSpanish +
+                        "\n   Número de descargas: " + book.getDownloadCount()
+        );
+    }
+
+    private void showAuthors(List<Author> authors){
+        List<String> authorBooks = new ArrayList<>();
+        int count = 1;
+        if (!authors.isEmpty()) {
+            for (Author author : authors) {
+
+                System.out.println("\n [" + count + "] \n" +
+                        "------------------- Autor -------------------" +
+                        author.toString());
+
+
+                for (Book book : author.getBooks()) {
+                    authorBooks.add(book.getTitle());
+                }
+
+                String booksString = String.join(", ", authorBooks);
+                System.out.println("Books: " + booksString);
+                System.out.println("\n------------------- ***** -------------------\n");
+
+                count++;
+            }
+        } else {
+            System.out.println("No se encontraron autores registrados en la base de datos.");
+        }
     }
 
 
@@ -410,9 +490,4 @@ public class Principal {
         System.out.println("--- Se ha guardado el libro "+ book.title() + "en la base de datos. ---");
 
     }
-
-
-
-
-
 }
