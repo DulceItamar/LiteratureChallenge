@@ -110,6 +110,16 @@ public class Principal {
         }
     }
 
+
+    public static  void verifyYearsFormat(int inputYear) throws InvalidOptionsException {
+        if (inputYear < -4000 || inputYear > 2024) {
+            throw new InvalidOptionsException("Opción inválida, intente con otros valores");
+
+        }
+    }
+
+
+
     public void showMenu (){
         var menu = """
                        ___________ MENU DE OPCIONES __________________
@@ -179,6 +189,7 @@ public class Principal {
             System.out.println("No hay libros almacenados en la base de datos");
         }
     }
+
     // 3)
     private void listRegisteredAuthors(){
         List<Author> allAuthors = authorRepository.findAll();
@@ -190,6 +201,7 @@ public class Principal {
                 System.out.println("\n [" + count + "] \n" +
                         author.toString())
                 ;
+                System.out.println(author.getBooks());
                 count++;
             }
         } else {
@@ -197,8 +209,45 @@ public class Principal {
         }
 
     }
+
     // 4)
-    private void listAuthorsByRangeYear(){
+    private void listAuthorsByRangeYear() throws InvalidOptionsException {
+        System.out.println("*Para años antes de Cristo deben ser negativos (ej. -499 para 499 a.C.)");
+        System.out.println("Ingresa el año que deseas: ");
+        var inputYear = keyboard.nextInt();
+
+
+        verifyYearsFormat(inputYear);
+        List<Author> searchedAuthors = authorRepository.findByBirthYearLessThanEqualAndDeathYearGreaterThanEqual(inputYear, inputYear);
+        List<String> authorBooks = new ArrayList<>();
+        int count = 1;
+        if (!searchedAuthors.isEmpty()){
+            for (Author author: searchedAuthors){
+
+                System.out.println("\n [" + count + "] \n" +
+                                "------------------- Autor -------------------" +
+                        author.toString());
+
+                ;
+
+                for(Book book: author.getBooks()){
+                    authorBooks.add(book.getTitle());
+                }
+
+                String booksString = String.join(", ", authorBooks);
+                System.out.println("Books: " + booksString);
+                System.out.println( "\n------------------- ***** -------------------\n");
+
+                count++;
+            }
+        } else {
+            System.out.println("No se encontraron autores registrados en la base de datos.");
+        }
+
+
+
+
+
 
     }
     // 5)
