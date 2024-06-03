@@ -77,9 +77,10 @@ public class Principal {
                 keyboard.nextLine();
                 System.out.println("Error: Entrada inválida. Intente de nuevo.");
             } catch (InvalidOptionsException e) {
-                throw new RuntimeException(e);
+                System.out.println("Error: "+ e.getMessage());
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                System.out.println("Error inesperado: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
@@ -105,20 +106,44 @@ public class Principal {
 
 
     // 1)
-    private  void searchBooksbyTitle(){
+    private  void searchBooksbyTitle() throws InvalidOptionsException {
         System.out.print("Ingrese el título del libro que desea buscar:  ");
         var searchedBookByTitle = keyboard.next();
         keyboard.nextLine();
         List<Book> booksList = bookRepository.findByTitleContainsIgnoreCase(searchedBookByTitle);
 
+        int count= 1;
         if (!booksList.isEmpty()){
             for(Book book: booksList){
 
-                System.out.println("\n------------------- LIBRO " +" -------------------");
+                System.out.println("\n------------------- LIBRO " + count + " -------------------");
                 showBook(book, book.getAuthor());
                 System.out.println( "\n------------------- ***** -------------------\n");
+                count++;
 
             }
+
+            Book searchedBook = null;
+
+            if (booksList.stream().count() > 1){
+                System.out.print("Inserte el número que se encuentra en el encabezado para ver el libro que desea, si desea salir insertar 0: ");
+                var selectedBook = keyboard.nextInt();
+                keyboard.nextLine();
+
+                validations.verifyGutendexInputIsValid(selectedBook, booksList.size());
+
+                searchedBook = booksList.get(selectedBook - 1);
+
+            } else if (booksList.stream().count() == 1){
+                searchedBook = booksList.get(0);
+            } else {
+                System.out.println("No se encontró ese libro en Gutendex :(");
+
+            }
+
+            System.out.println(  "\n------------------- LIBRO  ------------------- " );
+            showBook(searchedBook, searchedBook.getAuthor());
+            System.out.println("\n------------------- ***** ------------------- \n");
 
         } else {
             System.out.println("Libro no encontrado en la base de datos");
@@ -150,38 +175,16 @@ public class Principal {
     // 3)
     private void listRegisteredAuthors(){
         List<Author> allAuthors = authorRepository.findAll();
+        System.out.println("Esos son todos los autores registrados en la base de datos");
         showAuthors(allAuthors);
-/*
-        int count = 1;
-        if (!allAuthors.isEmpty()){
-            for (Author author: allAuthors){
 
-                System.out.println("\n [" + count + "] \n");
-                        System.out.println("\n------------------- AUTHOR "+ " -------------------");
-                System.out.println(author.toString());
-
-                System.out.println( "\n------------------- ***** -------------------\n");
-
-
-                System.out.println(author.getBooks());
-
-
-                var books = author.getBooks();
-
-
-                count++;
-            }
-        } else {
-            System.out.println("No se encontraron autores registrados en la base de datos.");
-        }
-        */
 
     }
 
     // 4)
     private void listAuthorsByRangeYear() throws InvalidOptionsException {
         System.out.println("*Para años antes de Cristo deben ser negativos (ej. -499 para 499 a.C.)");
-        System.out.println("Ingresa el año que deseas: ");
+        System.out.print("Ingresa el año que deseas: ");
         var inputYear = keyboard.nextInt();
 
 
@@ -191,31 +194,7 @@ public class Principal {
         int count = 1;
 
         showAuthors(searchedAuthors);
-        /*
 
-        if (!searchedAuthors.isEmpty()){
-            for (Author author: searchedAuthors){
-
-                System.out.println("\n [" + count + "] \n" +
-                                "------------------- Autor -------------------" +
-                        author.toString());
-
-
-                for(Book book: author.getBooks()){
-                    authorBooks.add(book.getTitle());
-                }
-
-                String booksString = String.join(", ", authorBooks);
-                System.out.println("Books: " + booksString);
-                System.out.println( "\n------------------- ***** -------------------\n");
-
-                count++;
-            }
-        } else {
-            System.out.println("No se encontraron autores registrados en la base de datos.");
-        }
-
-         */
     }
 
     // 5)
@@ -332,6 +311,7 @@ public class Principal {
                                 "\n------------------- ***** ------------------- \n"
                 );
                 count++;
+
             }
             System.out.println("\n- | - | - | - | - | - | - SALIDA DE LA BIBLIOTECA - | - | - | - | - | - | -\n");
 
@@ -430,12 +410,12 @@ public class Principal {
 
         System.out.println(
 
-          "------------------- LIBRO -------------------" +
+
                 "\n   Título: " + book.title() +
                 "\n   Autor: " + author.getName() +
                 "\n   Idioma: " +languageInSpanish +
-                "\n   Número de descargas: " + book.downloadCount() +
-                "\n------------------- ***** -------------------\n"
+                "\n   Número de descargas: " + book.downloadCount()
+
         );
     }
 
